@@ -1,7 +1,9 @@
 {-# LANGUAGE RankNTypes, StandaloneDeriving, GADTs, FlexibleInstances #-}
 
 module Data.Namespace.Namespace
-    ( Namespace, lookupNamespace, lookupObject, namespace, topLevelObjects, insertObject
+    ( Namespace, lookupNamespace, lookupObject, topLevelObjects, insertObject,
+      importFromNamespace, importAllFromNamespace, importExceptFromNamespace,
+      importQualifiedFromNamespace, importQualifiedAllFromNamespace, importQualifiedExceptFromNamespace
     ) where
 
 import Prelude hiding (lookup)
@@ -29,8 +31,9 @@ lookupObject (ObjectPath np k) n = do
   (Namespace nm om) <- lookupNamespace np n
   lookup k om
 
-namespace :: Key k => Namespace k a
-namespace = Namespace mempty mempty
+instance Key k => Monoid (Namespace k a) where
+  mempty = Namespace mempty mempty
+  mappend (Namespace nm om) (Namespace nm2 om2) = Namespace (unionWith mappend nm nm2) (om <> om2)
 
 topLevelObjects :: Key k => Namespace k a -> Map k a
 topLevelObjects (Namespace _ om) = om
@@ -38,14 +41,14 @@ topLevelObjects (Namespace _ om) = om
 insertObject :: Key k => ObjectPath k -> a -> Namespace k a -> Namespace k a
 insertObject (ObjectPath (NamespacePath []) k) o (Namespace nm om) = Namespace nm (insert k o om)
 insertObject (ObjectPath (NamespacePath (k : ks)) objkey) o (Namespace nm om) =
-  let nm2 = fromMaybe namespace (lookup k nm)
+  let nm2 = fromMaybe mempty (lookup k nm)
       nm2' = insertObject (ObjectPath (NamespacePath ks) objkey) o nm2 in
       Namespace (insert k nm2' nm) om
 
 insertNamespace :: Key k => NamespacePath k -> Map k a -> Namespace k a -> Namespace k a
 insertNamespace (NamespacePath []) om (Namespace nm2 om2) = Namespace nm2 (om <> om2)
 insertNamespace (NamespacePath (k : ks)) om (Namespace nm2 om2) =
-  let nm3 = fromMaybe namespace (lookup k nm2)
+  let nm3 = fromMaybe mempty (lookup k nm2)
       nm3' = insertNamespace (NamespacePath ks) om nm3' in
       Namespace (insert k nm3' nm2) om
 
