@@ -15,7 +15,7 @@ cabal-version:       >=1.10
 
 library
   hs-source-dirs:      src
-  exposed-modules:     Data.Namespace.Namespace Data.Namespace.Path Data.Namespace.Workspace
+  exposed-modules:     Data.Namespace.Namespace Data.Namespace.Path
   build-depends:       base >= 4.7 && < 5,
                        containers
   default-language:    Haskell2010

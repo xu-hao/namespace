@@ -15,11 +15,16 @@ data NamespacePath k where
 
 deriving instance Eq (NamespacePath k)
 deriving instance Ord (NamespacePath k)
+deriving instance Show k => Show (NamespacePath k)
 
 instance Key (NamespacePath k) where
 
 data ObjectPath k where
   ObjectPath :: Key k => NamespacePath k -> k -> ObjectPath k
+
+deriving instance Eq (ObjectPath k)
+deriving instance Ord (ObjectPath k)
+deriving instance Show k => Show (ObjectPath k)
 
 extendNamespacePath :: Key k => NamespacePath k -> k -> NamespacePath k
 extendNamespacePath (NamespacePath p) k = NamespacePath (p <> [k])
