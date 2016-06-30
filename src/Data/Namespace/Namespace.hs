@@ -1,7 +1,7 @@
 {-# LANGUAGE RankNTypes, StandaloneDeriving, GADTs, FlexibleInstances #-}
 
 module Data.Namespace.Namespace
-    ( Namespace, lookupNamespace, lookupObject, topLevelObjects, insertObject,
+    ( Namespace, lookupNamespace, lookupObject, topLevelObjects, insertObject, insertNamespace,
       importFromNamespace, importAllFromNamespace, importExceptFromNamespace,
       importQualifiedFromNamespace, importQualifiedAllFromNamespace, importQualifiedExceptFromNamespace
     ) where
