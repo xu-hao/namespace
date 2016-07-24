@@ -1,7 +1,7 @@
 {-# LANGUAGE RankNTypes, StandaloneDeriving, GADTs, FlexibleInstances #-}
 
 module Data.Namespace.Namespace
-    ( Namespace, lookupNamespace, lookupObject, topLevelObjects, insertObject, insertNamespace,
+    ( Namespace, lookupNamespace, lookupObject, topLevelObjects, insertObject, insertNamespace, topLevelNamespaces, allObjects,
       importFromNamespace, importAllFromNamespace, importExceptFromNamespace,
       importQualifiedFromNamespace, importQualifiedAllFromNamespace, importQualifiedExceptFromNamespace
     ) where
@@ -37,6 +37,18 @@ instance Key k => Monoid (Namespace k a) where
 
 topLevelObjects :: Key k => Namespace k a -> Map k a
 topLevelObjects (Namespace _ om) = om
+
+topLevelNamespaces :: Key k => Namespace k a -> Map k (Namespace k a)
+topLevelNamespaces (Namespace nm _) = nm
+
+concatKey :: Key k => k -> Map (ObjectPath k) a -> Map (ObjectPath k) a
+concatKey key = foldrWithKey (\key2 o m -> insert (concatNamespacePathWithObjectPath (NamespacePath [key]) key2) o m ) mempty
+
+pathKey :: Key k => Map k a -> Map (ObjectPath k) a
+pathKey = foldrWithKey (\key o m -> insert (ObjectPath (NamespacePath []) key) o m ) mempty
+
+allObjects :: Key k => Namespace k a -> Map (ObjectPath k) a
+allObjects ns = pathKey (topLevelObjects ns) <> mconcat (elems (mapWithKey (\key ns2 -> concatKey key (allObjects ns2)) (topLevelNamespaces ns)))
 
 insertObject :: Key k => ObjectPath k -> a -> Namespace k a -> Namespace k a
 insertObject (ObjectPath (NamespacePath []) k) o (Namespace nm om) = Namespace nm (insert k o om)
