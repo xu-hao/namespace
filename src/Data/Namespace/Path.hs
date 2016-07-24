@@ -1,4 +1,4 @@
-{-# LANGUAGE RankNTypes, GADTs, StandaloneDeriving, FlexibleInstances, PatternSynonyms #-}
+{-# LANGUAGE RankNTypes, GADTs, StandaloneDeriving, FlexibleInstances, MultiParamTypeClasses #-}
 
 module Data.Namespace.Path
     ( NamespacePath(..), ObjectPath(..), extendNamespacePath, concatNamespacePathWithObjectPath, qualified, Key,
@@ -7,6 +7,7 @@ module Data.Namespace.Path
 import Prelude hiding (lookup)
 import Data.Map.Strict
 import Data.Monoid
+import Data.Monoid.Action
 
 class Ord k => Key k where
 
@@ -35,6 +36,9 @@ instance Key k => Monoid (NamespacePath k) where
 
 concatNamespacePathWithObjectPath :: Key k => NamespacePath k -> ObjectPath k -> ObjectPath k
 concatNamespacePathWithObjectPath np (ObjectPath np2 k) = ObjectPath (np <> np2) k
+
+instance Key k => Action (NamespacePath k) (ObjectPath k) where
+  act = concatNamespacePathWithObjectPath
 
 qualified :: Key k => ObjectPath k -> Bool
 qualified (ObjectPath (NamespacePath []) _) = False
