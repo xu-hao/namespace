@@ -9,6 +9,7 @@ module Data.Namespace.Namespace
 import Prelude hiding (lookup)
 import Data.Map.Strict
 import Data.Monoid
+import Data.Monoid.Action (act)
 import Data.Maybe
 import Control.Monad
 import Control.Applicative
@@ -42,10 +43,10 @@ topLevelNamespaces :: Key k => Namespace k a -> Map k (Namespace k a)
 topLevelNamespaces (Namespace nm _) = nm
 
 concatKey :: Key k => k -> Map (ObjectPath k) a -> Map (ObjectPath k) a
-concatKey key = foldrWithKey (\key2 o m -> insert (concatNamespacePathWithObjectPath (NamespacePath [key]) key2) o m ) mempty
+concatKey key = mapKeys (act (NamespacePath [key]))
 
 pathKey :: Key k => Map k a -> Map (ObjectPath k) a
-pathKey = foldrWithKey (\key o m -> insert (ObjectPath (NamespacePath []) key) o m ) mempty
+pathKey = mapKeys (ObjectPath (NamespacePath []))
 
 allObjects :: Key k => Namespace k a -> Map (ObjectPath k) a
 allObjects ns = pathKey (topLevelObjects ns) <> mconcat (elems (mapWithKey (\key ns2 -> concatKey key (allObjects ns2)) (topLevelNamespaces ns)))
