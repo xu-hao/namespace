@@ -62,7 +62,7 @@ insertNamespace :: Key k => NamespacePath k -> Map k a -> Namespace k a -> Names
 insertNamespace (NamespacePath []) om (Namespace nm2 om2) = Namespace nm2 (om <> om2)
 insertNamespace (NamespacePath (k : ks)) om (Namespace nm2 om2) =
   let nm3 = fromMaybe mempty (lookup k nm2)
-      nm3' = insertNamespace (NamespacePath ks) om nm3' in
+      nm3' = insertNamespace (NamespacePath ks) om nm3 in
       Namespace (insert k nm3' nm2) om
 
 importAllFromNamespace :: Key k => NamespacePath k -> Namespace k a -> Namespace k a -> Maybe (Namespace k a)
