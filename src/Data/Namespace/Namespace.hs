@@ -46,7 +46,7 @@ concatKey :: Key k => k -> Map (ObjectPath k) a -> Map (ObjectPath k) a
 concatKey key = mapKeys (act (NamespacePath [key]))
 
 pathKey :: Key k => Map k a -> Map (ObjectPath k) a
-pathKey = mapKeys (ObjectPath (NamespacePath []))
+pathKey = mapKeys (\ObjectPath (NamespacePath []) key) o m ) mempty
 
 allObjects :: Key k => Namespace k a -> Map (ObjectPath k) a
 allObjects ns = pathKey (topLevelObjects ns) <> mconcat (elems (mapWithKey (\key ns2 -> concatKey key (allObjects ns2)) (topLevelNamespaces ns)))
@@ -62,7 +62,7 @@ insertNamespace :: Key k => NamespacePath k -> Map k a -> Namespace k a -> Names
 insertNamespace (NamespacePath []) om (Namespace nm2 om2) = Namespace nm2 (om <> om2)
 insertNamespace (NamespacePath (k : ks)) om (Namespace nm2 om2) =
   let nm3 = fromMaybe mempty (lookup k nm2)
-      nm3' = insertNamespace (NamespacePath ks) om nm3' in
+      nm3' = insertNamespace (NamespacePath ks) om nm3 in
       Namespace (insert k nm3' nm2) om
 
 importAllFromNamespace :: Key k => NamespacePath k -> Namespace k a -> Namespace k a -> Maybe (Namespace k a)
