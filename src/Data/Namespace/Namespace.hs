@@ -3,14 +3,15 @@
 module Data.Namespace.Namespace
     ( Namespace, lookupNamespace, lookupObject, topLevelObjects, insertObject, insertNamespace, topLevelNamespaces, allObjects,
       importFromNamespace, importAllFromNamespace, importExceptFromNamespace,
-      importQualifiedFromNamespace, importQualifiedAllFromNamespace, importQualifiedExceptFromNamespace
+      importQualifiedFromNamespace, importQualifiedAllFromNamespace, importQualifiedExceptFromNamespace, toTree
     ) where
 
 import Prelude hiding (lookup)
-import Data.Map.Strict
+import Data.Map.Strict (lookup, insert, foldlWithKey, mapKeys, mapWithKey, unionWith, toList, Map, elems)
 import Data.Monoid
 import Data.Monoid.Action (act)
 import Data.Maybe
+import Data.Tree
 import Control.Monad
 import Control.Applicative
 
@@ -110,3 +111,9 @@ importQualifiedExceptFromNamespace p keys n n2 = do
                               then om2'
                               else insert key o om2') mempty om
   return (insertNamespace p om' n2)
+
+toTree :: Key k => Namespace k a -> Tree (Maybe k, Maybe a)
+toTree ns =
+  toTree' Nothing ns where
+    toTree' rk (Namespace nm om) =
+      Node (rk, Nothing) (map (\(k ,ns') -> toTree' (Just k) ns') (toList nm) ++ map (\(k, a) -> Node (Just k, Just a) []) (toList om))
