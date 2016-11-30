@@ -66,7 +66,7 @@ insertNamespace (NamespacePath []) om (Namespace nm2 om2) = Namespace nm2 (om <>
 insertNamespace (NamespacePath (k : ks)) om (Namespace nm2 om2) =
   let nm3 = fromMaybe mempty (lookup k nm2)
       nm3' = insertNamespace (NamespacePath ks) om nm3 in
-      Namespace (insert k nm3' nm2) om
+      Namespace (insert k nm3' nm2) om2
 
 importAllFromNamespace :: Key k => NamespacePath k -> Namespace k a -> Namespace k a -> Maybe (Namespace k a)
 importAllFromNamespace np n (Namespace nm2 om2) = do
@@ -118,7 +118,7 @@ importAllFromNamespaceE :: (Key k, Show k, Show a) => NamespacePath k -> Namespa
 importAllFromNamespaceE np n (Namespace nm2 om2) =
   case lookupNamespace np n of
     Nothing -> Left ("importAllFromNamespaceE: cannot find " ++ show np ++ " in " ++ drawTree (fmap show (toTree n)))
-    Just n' -> do
+    Just n' ->
       return (Namespace nm2 (topLevelObjects n' <> om2))
 
 importFromNamespaceE :: (Key k, Show k, Show a) => NamespacePath k -> [k] -> Namespace k a -> Namespace k a -> Either String (Namespace k a)
