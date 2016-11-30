@@ -1,5 +1,8 @@
 {-# LANGUAGE RankNTypes, StandaloneDeriving, GADTs, FlexibleInstances #-}
 
+-- |
+-- each of the import functions has an extra E version. The E version returns `Either String a` rather than `Maybe a`
+
 module Data.Namespace.Namespace
     ( Namespace, lookupNamespace, lookupObject, topLevelObjects, insertObject, insertNamespace, topLevelNamespaces, allObjects,
       importFromNamespace, importAllFromNamespace, importExceptFromNamespace,

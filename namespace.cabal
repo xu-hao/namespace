@@ -1,5 +1,5 @@
 name:                namespace
-version:             0.1.2.4
+version:             0.1.3.0
 synopsis:            A Generic Haskell library for managing namespaces
 description:         Please see README.md
 homepage:            https://github.com/xu-hao/namespace
