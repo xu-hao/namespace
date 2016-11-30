@@ -3,7 +3,9 @@
 module Data.Namespace.Namespace
     ( Namespace, lookupNamespace, lookupObject, topLevelObjects, insertObject, insertNamespace, topLevelNamespaces, allObjects,
       importFromNamespace, importAllFromNamespace, importExceptFromNamespace,
-      importQualifiedFromNamespace, importQualifiedAllFromNamespace, importQualifiedExceptFromNamespace, toTree
+      importQualifiedFromNamespace, importQualifiedAllFromNamespace, importQualifiedExceptFromNamespace,
+      importFromNamespaceE, importAllFromNamespaceE, importExceptFromNamespaceE,
+      importQualifiedFromNamespaceE, importQualifiedAllFromNamespaceE, importQualifiedExceptFromNamespaceE, toTree
     ) where
 
 import Prelude hiding (lookup)
@@ -111,6 +113,70 @@ importQualifiedExceptFromNamespace p keys n n2 = do
                               then om2'
                               else insert key o om2') mempty om
   return (insertNamespace p om' n2)
+
+importAllFromNamespaceE :: (Key k, Show k, Show a) => NamespacePath k -> Namespace k a -> Namespace k a -> Either String (Namespace k a)
+importAllFromNamespaceE np n (Namespace nm2 om2) =
+  case lookupNamespace np n of
+    Nothing -> Left ("importAllFromNamespaceE: cannot find " ++ show np ++ " in " ++ drawTree (fmap show (toTree n)))
+    Just n' -> do
+      return (Namespace nm2 (topLevelObjects n' <> om2))
+
+importFromNamespaceE :: (Key k, Show k, Show a) => NamespacePath k -> [k] -> Namespace k a -> Namespace k a -> Either String (Namespace k a)
+importFromNamespaceE np keys n (Namespace nm2 om2) =
+  case lookupNamespace np n of
+    Nothing -> Left ("importFromNamespaceE: cannot find " ++ show np ++ " in " ++ drawTree (fmap show (toTree n)))
+    Just n' -> do
+      let om = topLevelObjects n'
+      Namespace nm2 <$> foldM (\om2' key ->
+                                case lookup key om of
+                                  Nothing ->
+                                    Left ("importFromNamespaceE: cannot find " ++ show key ++ " at " ++ show np ++ " in " ++ show om)
+                                  Just o ->
+                                    return (insert key o om2')) om2 keys
+
+importExceptFromNamespaceE :: (Key k, Show k, Show a) => NamespacePath k -> [k] -> Namespace k a -> Namespace k a -> Either String (Namespace k a)
+importExceptFromNamespaceE np keys n (Namespace nm2 om2) =
+  case lookupNamespace np n of
+    Nothing -> Left ("importExceptFromNamespaceE: cannot find " ++ show np ++ " in " ++ drawTree (fmap show (toTree n)))
+    Just n' -> do
+      let om = topLevelObjects n'
+      return (Namespace nm2 (foldlWithKey (\om2' key o ->
+                                    if key `elem` keys
+                                      then om2'
+                                      else insert key o om2') om2 om))
+
+importQualifiedAllFromNamespaceE :: (Key k, Show k, Show a) => NamespacePath k -> Namespace k a -> Namespace k a -> Either String (Namespace k a)
+importQualifiedAllFromNamespaceE p n n2 =
+  case lookupNamespace p n of
+    Nothing -> Left ("importQualifiedFromNamespaceE: cannot find " ++ show p ++ " in " ++ drawTree (fmap show (toTree n)))
+    Just n' ->
+      return (insertNamespace p (topLevelObjects n') n2)
+
+importQualifiedFromNamespaceE :: (Key k, Show k, Show a) => NamespacePath k -> [k] -> Namespace k a -> Namespace k a -> Either String (Namespace k a)
+importQualifiedFromNamespaceE p keys n n2 =
+  case lookupNamespace p n of
+    Nothing -> Left ("importQualifiedFromNamespaceE: cannot find " ++ show p ++ " in " ++ drawTree (fmap show (toTree n)))
+    Just n' -> do
+      let om = topLevelObjects n'
+      om' <- foldM (\om2' key ->
+                            case lookup key om of
+                              Nothing ->
+                                Left ("importQualifiedFromNamespaceE: cannot find " ++ show key ++ " at " ++ show p ++ " in " ++ show om)
+                              Just o ->
+                                return (insert key o om2')) mempty keys
+      return (insertNamespace p om' n2)
+
+importQualifiedExceptFromNamespaceE :: (Key k, Show k, Show a) => NamespacePath k -> [k] -> Namespace k a -> Namespace k a -> Either String (Namespace k a)
+importQualifiedExceptFromNamespaceE p keys n n2 =
+  case lookupNamespace p n of
+    Nothing -> Left ("importQualifiedExceptFromNamespaceE: cannot find " ++ show p ++ " in " ++ drawTree (fmap show (toTree n)))
+    Just n' -> do
+      let om = topLevelObjects n'
+      let om' = foldlWithKey (\om2' key o ->
+                                if key `elem` keys
+                                  then om2'
+                                  else insert key o om2') mempty om
+      return (insertNamespace p om' n2)
 
 toTree :: Key k => Namespace k a -> Tree (Maybe k, Maybe a)
 toTree ns =
