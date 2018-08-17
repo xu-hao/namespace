@@ -13,6 +13,7 @@ module Data.Namespace.Namespace
 
 import Prelude hiding (lookup)
 import Data.Map.Strict (lookup, insert, foldlWithKey, mapKeys, mapWithKey, unionWith, toList, Map, elems)
+import Data.Semigroup
 import Data.Monoid
 import Data.Monoid.Action (act)
 import Data.Maybe
@@ -38,9 +39,11 @@ lookupObject (ObjectPath np k) n = do
   (Namespace nm om) <- lookupNamespace np n
   lookup k om
 
+instance Key k => Semigroup (Namespace k a) where
+  (<>) (Namespace nm om) (Namespace nm2 om2) = Namespace (unionWith mappend nm nm2) (om <> om2)
+
 instance Key k => Monoid (Namespace k a) where
   mempty = Namespace mempty mempty
-  mappend (Namespace nm om) (Namespace nm2 om2) = Namespace (unionWith mappend nm nm2) (om <> om2)
 
 topLevelObjects :: Key k => Namespace k a -> Map k a
 topLevelObjects (Namespace _ om) = om
